@@ -1,0 +1,29 @@
+# Node build artifacts
+node_modules
+npm-debug.log
+
+# Local development
+*.env
+*.dev
+.DS_Store
+.vscode
+logs
+tasks
+# Docker
+docker-compose.yml
+
+# New Relic server monitoring
+newrelic_agent.log
+
+#logs
+logs/*
+
+# documentation - ignoring internal documentation.
+documentation
+.shopify
+
+shopify.app.toml
+
+coverage
+
+extensions/**/dist

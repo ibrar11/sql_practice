@@ -26,14 +26,22 @@ const getSortedProducts = async (req, res) => {
 const addProducts = async (req, res) => {
     try {
         const { products } = req.body;
-        products?.forEach(async (product) => {
-            const response = await model.sequelize.query(
+        for (const product of products) {
+            await model.sequelize.query(
                 `INSERT INTO "Products"
-                    ("ProductName", "SupplierId", "CategoryId", "Unit", "Price") VALUES
-                    ($$${product.productName}$$, ${product.supplierId}, ${product.categoryId}, $$${product.unit}$$, ${product.price})
-                `
-            )
-        })
+                    ("ProductName", "SupplierId", "CategoryId", "Unit", "Price")
+                    VALUES ($1, $2, $3, $4, $5)`,
+                    {
+                        bind: [
+                            product.productName,
+                            product.supplierId,
+                            product.categoryId,
+                            product.unit,
+                            product.price,
+                        ],
+                    }
+            );
+        }
         return res.json({
             status: 'success'
         })

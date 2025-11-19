@@ -96,7 +96,7 @@ const addSpending = async (req, res) => {
             `Select * from "Customers"`
         );
         const customers = response[0];
-        customers?.forEach(async (customer) => {
+        for (const customer of customers) {
             const spending = parseInt(Math.floor(Math.random() * 1000) + 100);
             await models.sequelize.query(
                 `UPDATE "Customers"
@@ -104,7 +104,7 @@ const addSpending = async (req, res) => {
                     WHERE "id" = ${customer.id}
                 `
             )
-        })
+        }
         return res.json({
             status: "sucess"
         })

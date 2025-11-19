@@ -23,7 +23,7 @@ module.exports = {
         type: Sequelize.STRING
       },
       Price: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.FLOAT,
         defaultValue: 0
       }
     })

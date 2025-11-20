@@ -9,8 +9,22 @@ const getSortedProducts = async (req, res) => {
             `
         )
 
+        const productCount = await model.sequelize.query(
+            `SELECT COUNT("id")
+                FROM "Products"
+            `
+        )
+
+        const priceAggregatedValues = await model.sequelize.query(
+            `SELECT SUM("Price") as TotalPrice, AVG("Price") as AveragePrice
+                FROM "Products"
+            `
+        )
+
         return res.json({
             products: sortedProducts,
+            productCount,
+            priceAggregatedValues,
             status: 'success'
         })
 

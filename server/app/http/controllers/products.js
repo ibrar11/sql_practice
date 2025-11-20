@@ -23,6 +23,30 @@ const getSortedProducts = async (req, res) => {
     }
 }
 
+const getFilteredProducts = async (req, res) => {
+    try {
+        const filteredProducts = await model.sequelize.query(
+            `SELECT *
+                FROM "Products"
+                WHERE "Price"IS NOT NULL AND
+                "Price" NOT IN (22,30,40)
+            `
+        )
+
+        return res.json({
+            products: filteredProducts,
+            status: 'success'
+        })
+
+    }catch (err) {
+        console.log("Error while fetching products",err);
+        return res.json({
+            message: err.message,
+            status: 'error'
+        })
+    }
+}
+
 const addProducts = async (req, res) => {
     try {
         const { products } = req.body;
@@ -57,5 +81,6 @@ const addProducts = async (req, res) => {
 
 module.exports = {
     getSortedProducts,
-    addProducts
+    addProducts,
+    getFilteredProducts
 }

@@ -79,8 +79,34 @@ const addProducts = async (req, res) => {
     }
 }
 
+const removeProducts = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await model.sequelize.query(
+            `DELETE FROM "Products"
+                WHERE "id" = $1`,
+                {
+                    bind: [
+                        id
+                    ],
+                }
+        );
+        return res.json({
+            status: 'success'
+        })
+
+    }catch (err) {
+        console.log("Error while deleting products",err);
+        return res.json({
+            message: err.message,
+            status: 'error'
+        })
+    }
+}
+
 module.exports = {
     getSortedProducts,
     addProducts,
-    getFilteredProducts
+    getFilteredProducts,
+    removeProducts,
 }

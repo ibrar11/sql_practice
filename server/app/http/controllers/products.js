@@ -33,8 +33,18 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        // Select Top (num of records e.g, 2,3) is not supported in postgres and mysql
+        const highestPriceProduct = await model.sequelize.query(
+            `SELECT  *
+                FROM "Products"
+                ORDER BY "Price" DESC
+                LIMIT 1
+            `
+        )
+
         return res.json({
             products: filteredProducts,
+            highestPriceProduct,
             status: 'success'
         })
 

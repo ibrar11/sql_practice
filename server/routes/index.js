@@ -6,6 +6,6 @@ const orders = require('./orders');
 
 router.use("/customers",customers)
 router.use("/products",products)
-router.use("/products",orders)
+router.use("/orders",orders)
 
 module.exports = router;

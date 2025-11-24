@@ -3,13 +3,13 @@ module.exports = (sequelize, DataTypes) => {
 
     var Orders = sequelize.define("Orders", {
         id: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false,
             autoIncrement: true,
             primaryKey: true
         },
         CustomerID: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             references: {
                 model: "Customers",
                 key: "id"
@@ -17,15 +17,15 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         EmployeeID: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         OrderDate: {
-            type: Sequelize.DATE,
+            type: DataTypes.DATE,
             allowNull: false
         },
         ShipperID: {
-            type: Sequelize.INTEGER,
+            type: DataTypes.INTEGER,
             allowNull: false
         }
     })

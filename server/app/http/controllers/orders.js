@@ -32,6 +32,31 @@ const addOrders = async (req, res) => {
     }
 }
 
+const getOrders = async (req, res) => {
+    try {
+        const orders = await models.sequelize.query(
+            `
+                SELECT * FROM "Orders" INNER JOIN "Customers"
+                ON "Orders"."CustomerID" = "Customers"."id"
+            `
+        )
+        if(orders?.length === 0) {
+            return res.status(404).send({
+                messsage: "Orders not found."
+            })
+        }
+        return res.status(200).send({
+            orders
+        })
+    } catch (err) {
+        console.log("Error getting orders ", err)
+        return res.status(500).send({
+            messsage: err.messsage,
+        })
+    }
+}
+
 module.exports = {
-    addOrders
+    addOrders,
+    getOrders
 }

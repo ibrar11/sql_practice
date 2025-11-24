@@ -4,7 +4,11 @@ const addOrders = async (req, res) => {
     try {
         const { orders } = req.body;
         for (const order of orders) {
-            if (!order?.customerId || !order?.productId || !order?.orderDate || !order?.quantity) {
+            if (!(order?.customerId 
+                && order?.productId 
+                && order?.orderDate 
+                && order?.quantity)
+            ) {
                 return res.status(400).send("Order properties cannot be undefined")
             }
             await models.sequelize.query(

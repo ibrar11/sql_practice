@@ -9,7 +9,7 @@ const addCategoriesData = async (req,res) => {
             })
         }
         for (const category of categories) {
-            if (!category?.CategoryName || !category?.Description) {
+            if (!(category?.CategoryName && category?.Description)) {
                 return res.status(400).send("Category properties cannot be undefined")
             }
             await models.sequelize.query(

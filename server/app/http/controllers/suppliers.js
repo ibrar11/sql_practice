@@ -1,6 +1,6 @@
 const models = require("../../../db/models/index");
 
-const addSupplierData =async (req, res) => {
+const addSupplierData = async (req, res) => {
     try {
         const { suppliers } = req.body;
         if (suppliers?.length === 0){

@@ -34,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
         Orders.belongsTo(models.Customers)
         Orders.belongsTo(models.Shippers)
         Orders.belongsTo(models.Employees)
+        Orders.hasMany(models.OrderDetails)
     }
 
     return Orders;

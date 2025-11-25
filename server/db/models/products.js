@@ -30,6 +30,7 @@ module.exports = (sequelize, DataType) => {
     Products.associate = function(models) {
         Products.belongsTo(models.Categories)
         Products.belongsTo(models.Suppliers)
+        Products.hasMany(models.OrderDetails)
     }
 
     return Products;

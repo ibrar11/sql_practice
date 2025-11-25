@@ -36,6 +36,44 @@ const addOrders = async (req, res) => {
     }
 }
 
+const addOrderDetails = async (req, res) => {
+    try {
+        const { orderDetails } = req.body;
+        if (orderDetails?.length === 0){
+            return res.status(400).send({
+                message: "OrderDetails cannot be undefined"
+            })
+        }
+        for (const detail of orderDetails) {
+            if (!(detail?.OrderID && 
+                detail?.ProductID && 
+                detail?.Quantity)
+            ) {
+                return res.status(400).send("Detail properties cannot be undefined")
+            }
+            await models.sequelize.query(
+                `
+                    INSERT INTO "OrderDetails"
+                    ("OrderID","ProductID","Quantity")
+                    VALUES($1,$2,$3)
+                `,{
+                    bind: [
+                        detail.OrderID,
+                        detail.ProductID,
+                        detail.Quantity
+                    ]
+                }
+            )
+        }
+        return res.status(200).send("success");
+    } catch (err) {
+        console.log("Error inserting orderDetails data ",err);
+        return res.status(500).send({
+            message: err.message
+        })
+    }
+}
+
 const getOrders = async (req, res) => {
     try {
         const orders = await models.sequelize.query(
@@ -62,5 +100,6 @@ const getOrders = async (req, res) => {
 
 module.exports = {
     addOrders,
-    getOrders
+    getOrders,
+    addOrderDetails
 }

@@ -3,7 +3,6 @@ const models = require("../../../db/models/index");
 const addSupplierData =async (req, res) => {
     try {
         const { suppliers } = req.body;
-        console.log("supplierssuppliers",suppliers)
         if (suppliers?.length === 0){
             return res.status(400).send({
                 message: "Suppliers cannot be undefined"

@@ -5,11 +5,13 @@ const products = require('./products');
 const orders = require('./orders');
 const categories = require('./categories');
 const suppliers = require('./suppliers');
+const shippers = require('./shippers');
 
 router.use("/customers",customers)
 router.use("/products",products)
 router.use("/orders",orders)
 router.use("/categories",categories)
 router.use("/suppliers",suppliers)
+router.use("/shippers",shippers)
 
 module.exports = router;

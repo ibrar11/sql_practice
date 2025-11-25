@@ -32,6 +32,7 @@ module.exports = (sequelize, DataTypes) => {
 
     Orders.associate = function (models) {
         Orders.belongsTo(models.Customers)
+        Orders.belongsTo(models.Shippers)
     }
 
     return Orders;

@@ -74,11 +74,43 @@ const getFilteredCustomers = async (req, res) => {
                 WHERE "Spending" IN (200,400,600,800)
             `
         )
+
+        const topSpendingUsingSpending = await models.sequelize.query(
+            `
+                SELECT DISTINCT ON ("Customers"."Country")
+                    "Customers"."Country",
+                    "Customers"."CustomerName",
+                    "Customers"."Spending"
+                FROM "Customers"
+                ORDER BY "Customers"."Country","Customers"."Spending" DESC;
+            `
+        )
+
+        const topSpendingWithOutSpending = await models.sequelize.query(
+            `
+                SELECT DISTINCT ON (c."Country")
+                    c."Country",
+                    c."CustomerName",
+                    COALESCE(SUM(d."Quantity" * p."Price"),0) as "spending"
+                FROM "Customers" c
+                LEFT JOIN "Orders" o
+                    ON c."id" = o."CustomerID"
+                LEFT JOIN "OrderDetails" d
+                    ON d."OrderID" = o."id"
+                LEFT JOIN "Products" p
+                    ON p."id" = d."ProductID"
+                GROUP BY c."Country",c."CustomerName"
+                ORDER BY c."Country", "spending" DESC;
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
             lowSpending,
             specificSpending,
+            topSpendingUsingSpending,
+            topSpendingWithOutSpending,
             status: "sucess"
         })
     } catch (err) {

@@ -93,27 +93,40 @@ const getFilteredCustomers = async (req, res) => {
 const addSpending = async (req, res) => {
     try {
         const response = await models.sequelize.query(
-            `Select * from "Customers"`
+            `
+                SELECT 
+                    "Customers"."id" as "CustomerID", 
+                    "Customers"."CustomerName", 
+                    SUM("OrderDetails"."Quantity" * "Products"."Price") as "Spending"
+                FROM "Customers" 
+                LEFT JOIN "Orders" 
+                    ON "Customers"."id" = "Orders"."CustomerID"
+                LEFT JOIN "OrderDetails" 
+                    ON "Orders"."id" = "OrderDetails"."OrderID" 
+                LEFT JOIN "Products" 
+                    ON "OrderDetails"."ProductID" = "Products"."id"
+                GROUP BY "Customers"."id"
+                ORDER BY "Customers"."id";
+            `
         );
         const customers = response[0];
         for (const customer of customers) {
-            const spending = parseInt(Math.floor(Math.random() * 1000) + 100);
             await models.sequelize.query(
                 `UPDATE "Customers"
-                    SET "Spending" = ${spending}
-                    WHERE "id" = ${customer.id}
+                    SET "Spending" = ${customer?.Spending ? customer.Spending : 0}
+                    WHERE "id" = ${customer.CustomerID}
                 `
             )
         }
         return res.json({
+            customers,
             status: "sucess"
         })
     } catch (err) {
         console.log("Error adding customers spendings", err)
-        return res.json({
-            status: "error",
-            error: "cannotAddSpendings",
-        });
+        return res.status(500).send({
+            message: err.message
+        })
     }
 }
 

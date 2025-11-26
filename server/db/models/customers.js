@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
       Country: {
         type: DataTypes.STRING
       },
+      Spending: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+      }
     }, {
       tableName: 'Customers',
       timestamps: false

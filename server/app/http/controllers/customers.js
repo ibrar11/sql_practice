@@ -104,6 +104,23 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const threeDistinctProducts = await models.sequelize.query(
+            `
+                SELECT
+                    c."id" as "CustomerID",
+                    c."CustomerName",
+                    COUNT(DISTINCT d."ProductID")
+                FROM "Customers" c
+                JOIN "Orders" o
+                    ON c."id" = o."CustomerID"
+                JOIN "OrderDetails" d
+                    ON d."OrderID" = o."id"
+                GROUP BY c."id"
+                HAVING COUNT(DISTINCT d."ProductID") > 3
+                ORDER BY c."id";
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
@@ -111,6 +128,7 @@ const getFilteredCustomers = async (req, res) => {
             specificSpending,
             topSpendingUsingSpending,
             topSpendingWithOutSpending,
+            threeDistinctProducts,
             status: "sucess"
         })
     } catch (err) {

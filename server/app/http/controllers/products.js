@@ -56,9 +56,20 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        const neverOrderedProducts = await model.sequelize.query(
+            `
+                SELECT *
+                FROM "Products" p
+                LEFT JOIN "OrderDetails" d
+                    ON p."id" = d."ProductID"
+                WHERE d."id" IS NULL;
+            `
+        )
+
         return res.json({
             products: filteredProducts,
             highestPriceProduct,
+            neverOrderedProducts,
             status: 'success'
         })
 

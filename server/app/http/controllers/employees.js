@@ -42,6 +42,33 @@ const addEmployeesData = async(req, res) => {
     }
 }
 
+const filteredEmployeesData = async(req, res) => {
+    try {
+
+        const nonOrderCustomers = await models.sequelize.query(
+            `
+                SELECT e."id" AS "EmployeeID"
+                FROM "Employees" e
+                LEFT JOIN "Orders" o 
+                    ON e."id" = o."EmployeeID" 
+                WHERE o."id" IS NULL;
+            `
+        )
+
+        return res.json({
+            nonOrderCustomers,
+            status: "sucess"
+        })
+    } catch (err) {
+        console.log("Error fetching filtered employee from db", err)
+        return res.json({
+            status: "error",
+            error: "cannotFindFilteredEmployees",
+        });
+    }
+}
+
 module.exports = {
     addEmployeesData,
+    filteredEmployeesData
 }

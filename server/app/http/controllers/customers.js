@@ -121,6 +121,16 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const nonOrderCustomers = await models.sequelize.query(
+            `
+                SELECT c."id" AS "CustomerID"
+                FROM "Customers" c 
+                LEFT JOIN "Orders" o 
+                    ON c."id" = o."CustomerID" 
+                WHERE o."id" IS NULL;
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
@@ -129,6 +139,7 @@ const getFilteredCustomers = async (req, res) => {
             topSpendingUsingSpending,
             topSpendingWithOutSpending,
             threeDistinctProducts,
+            nonOrderCustomers,
             status: "sucess"
         })
     } catch (err) {

@@ -81,11 +81,26 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        const topProductSelling = await model.sequelize.query(
+            `
+                SELECT 
+                    p."id" as "ProductID",
+                    p."ProductName",
+                    SUM(d."Quantity") as "totalTimesOrdered"
+                FROM "OrderDetails" d
+                JOIN "Products" p
+                    ON p."id" = d."ProductID"
+                GROUP BY p."id"
+                HAVING SUM(d."Quantity") > 100;
+            `
+        )
+
         return res.json({
             products: filteredProducts,
             highestPriceProduct,
             neverOrderedProducts,
             topThreeSelling,
+            topProductSelling,
             status: 'success'
         })
 

@@ -55,8 +55,25 @@ const filteredEmployeesData = async(req, res) => {
             `
         )
 
+        const topThreeActiveEmployees = await models.sequelize.query(
+            `
+                SELECT 
+                    e."id" as "EmployeeID", 
+                    e."FirstName", 
+                    e."LastName", 
+                    COUNT(o."id") as "ordersHandled" 
+                FROM "Employees" e 
+                JOIN "Orders" o 
+                    ON e."id" = o."EmployeeID" 
+                GROUP BY e."id" 
+                ORDER BY COUNT(o."id") DESC 
+                LIMIT 3;
+            `
+        )
+
         return res.json({
             nonOrderCustomers,
+            topThreeActiveEmployees,
             status: "sucess"
         })
     } catch (err) {

@@ -95,12 +95,27 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        const productRevenueByCategory = await model.sequelize.query(
+            `
+                SELECT 
+                    c."id", 
+                    SUM(d."Quantity" * p."Price") as "totalRevenue" 
+                FROM "Categories" c
+                JOIN "Products" p 
+                    ON c."id" = p."CategoryId" 
+                JOIN "OrderDetails" d 
+                    ON d."ProductID" = p."id" 
+                GROUP BY c."id";
+            `
+        )
+
         return res.json({
             products: filteredProducts,
             highestPriceProduct,
             neverOrderedProducts,
             topThreeSelling,
             topProductSelling,
+            productRevenueByCategory,
             status: 'success'
         })
 

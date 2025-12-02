@@ -109,6 +109,81 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        const expensiveProductCategoryWise = await model.sequelize.query(
+            `
+                SELECT 
+                    c."id",
+                    p."ProductName",
+                    p."Price"
+                FROM "Categories" c
+                JOIN "Products" p
+                    ON p."CategoryId" = c."id"
+                WHERE p.id = (
+                    SELECT 
+                        "id"
+                    FROM "Products"
+                    WHERE "CategoryId" = c."id"
+                    ORDER BY "Price" DESC
+                    LIMIT 1
+                )
+                ORDER BY c."id";
+            `
+        )
+
+        const categoryWise2 = await model.sequelize.query(
+            `
+                SELECT DISTINCT ON (c."id")
+                    c."CategoryName",
+                    p."ProductName",
+                    p."Price"
+                FROM "Categories" c
+                JOIN "Products" p
+                    ON p."CategoryId" = c."id"
+                ORDER BY c."id", p."Price" DESC;
+            `
+        )
+
+        const categoryWise3 = await model.sequelize.query(
+            `
+                with max_priced AS (
+                    SELECT 
+                        p."CategoryId",
+                        p."ProductName",
+                        p."Price",
+                        ROW_NUMBER() OVER (PARTITION BY p."CategoryId" ORDER BY p."Price" DESC) as rn
+                    FROM "Products" p
+                )
+                SELECT 
+                    c."id",
+                    c."CategoryName",
+                    t."ProductName",
+                    t."Price"
+                FROM "Categories" c
+                JOIN max_priced t
+                    ON t."CategoryId" = c."id"
+                WHERE t.rn = 1;
+            `
+        )
+
+        const categoryWise4 = await model.sequelize.query(
+            `
+                SELECT 
+                    c."CategoryName",
+                    p."ProductName",
+                    p."Price"
+                FROM "Categories" c
+                JOIN "Products" p
+                    ON c."id" = p."CategoryId"
+                JOIN (
+                    SELECT "CategoryId", MAX("Price") AS max_price
+                    FROM "Products"
+                    GROUP BY "CategoryId"
+                ) t
+                    ON p."CategoryId" = t."CategoryId"
+                AND p."Price" = t.max_price;
+            `
+        )
+
         return res.json({
             products: filteredProducts,
             highestPriceProduct,
@@ -116,6 +191,10 @@ const getFilteredProducts = async (req, res) => {
             topThreeSelling,
             topProductSelling,
             productRevenueByCategory,
+            expensiveProductCategoryWise,
+            categoryWise2,
+            categoryWise3,
+            categoryWise4,
             status: 'success'
         })
 

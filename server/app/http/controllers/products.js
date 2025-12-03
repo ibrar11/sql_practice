@@ -184,6 +184,24 @@ const getFilteredProducts = async (req, res) => {
             `
         )
 
+        const highestOrderedPerCategory = await model.sequelize.query(
+            `
+                SELECT DISTINCT ON (c."id")
+                    c."id" as "CAtegoryID",
+                    c."CategoryName",
+                    p."id" as "ProductID",
+                    p."ProductName",
+                    SUM(d."Quantity") as "Total Quantity Ordered"
+                FROM "Categories" c
+                JOIN "Products" p
+                    ON c."id" = p."CategoryId"
+                JOIN "OrderDetails" d
+                    ON p."id" = d."ProductID"
+                GROUP BY c."id",p."id"
+                ORDER BY c."id", SUM(d."Quantity") DESC;
+            `
+        )
+
         return res.json({
             products: filteredProducts,
             highestPriceProduct,
@@ -195,6 +213,7 @@ const getFilteredProducts = async (req, res) => {
             categoryWise2,
             categoryWise3,
             categoryWise4,
+            highestOrderedPerCategory,
             status: 'success'
         })
 

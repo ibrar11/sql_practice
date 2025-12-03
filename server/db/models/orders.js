@@ -35,6 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         Orders.belongsTo(models.Shippers)
         Orders.belongsTo(models.Employees)
         Orders.hasMany(models.OrderDetails)
+        Orders.hasOne(models.OrderShippings)
     }
 
     return Orders;

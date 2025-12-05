@@ -234,6 +234,34 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const havingTopAvgRevenuePerOrder = await models.sequelize.query(
+            `
+                SELECT 
+                c."id" as "CustomerID",
+                c."CustomerName",
+                COUNT(t."OrderID") as "TotalOrders",
+                SUM(t."orderRevenue")/COUNT(t."OrderID") as "AverageRevenuePerOrder"
+                FROM "Customers" c
+                JOIN (
+                    SELECT
+                        o."id" as "OrderID",
+                        o."CustomerID",
+                        SUM(d."Quantity" * p."Price") as "orderRevenue"
+                    FROM "Orders" o
+                    JOIN "OrderDetails" d
+                        ON d."OrderID" = o."id"
+                    JOIN "Products" p
+                        ON p."id" = d."ProductID"
+                    GROUP BY o."id"
+                ) t
+                    ON c."id" = t."CustomerID"
+                GROUP BY c."id"
+                HAVING COUNT(t."OrderID") >= 5
+                ORDER BY SUM(t."orderRevenue")/COUNT(t."OrderID") DESC
+                LIMIT 3;
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
@@ -248,6 +276,7 @@ const getFilteredCustomers = async (req, res) => {
             differentShippingCustomers,
             top3SpendingCustomers,
             top5BuyerWithDistinctCategory,
+            havingTopAvgRevenuePerOrder,
             status: "sucess"
         })
     } catch (err) {

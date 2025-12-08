@@ -34,6 +34,50 @@ const addCategoriesData = async (req,res) => {
     }
 }
 
+const getCategoriesData = async (req,res) => {
+    try {
+        const withTopProductPercentage = await models.sequelize.query(
+            `
+                SELECT DISTINCT ON (c."id")
+                c."id" as "CategoryID",
+                c."CategoryName",
+                p."id" as ProductID,
+                p."ProductName",
+                SUM(d."Quantity" * p."Price") as "ProductRevenue",
+                SUM(d."Quantity" * p."Price")/t."CategoryTotalRevenue" * 100 as "ContributionPercent"
+                FROM "Categories" c
+                JOIN "Products" p
+                    ON c."id" = p."CategoryId"
+                JOIN "OrderDetails" d
+                    ON p."id" = d."ProductID"
+                JOIN (
+                    SELECT 
+                        c."id" as "CategoryID",
+                        SUM(d."Quantity" * p."Price") as "CategoryTotalRevenue"
+                    FROM "Categories" c
+                    JOIN "Products" p
+                        ON c."id" = p."CategoryId"
+                    JOIN "OrderDetails" d
+                        ON p."id" = d."ProductID"
+                    GROUP BY c."id"
+                ) t
+                    ON c."id" = t."CategoryID"
+                GROUP BY c."id",p."id",t."CategoryTotalRevenue"
+                ORDER BY c."id", SUM(d."Quantity" * p."Price") DESC;
+            `
+        )
+        return res.status(200).send({
+            withTopProductPercentage
+        });
+    } catch (err) {
+        console.log("Error fetching categories data ",err);
+        return res.status(500).send({
+            message: err.message
+        })
+    }
+}
+
 module.exports = {
-    addCategoriesData
+    addCategoriesData,
+    getCategoriesData
 }

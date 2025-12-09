@@ -262,6 +262,39 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const topOrdersPerCustomers = await models.sequelize.query(
+            `
+                WITH order_rank as (
+                    SELECT 
+                        c."id" as "CustomerID",
+                        c."CustomerName",
+                        o."id" as "OrderID",
+                        SUM(d."Quantity" * p."Price") as "OrderRevenue",
+                        ROW_NUMBER() OVER (PARTITION BY c."id" ORDER BY  SUM(d."Quantity" * p."Price") DESC) as "OrderRank"
+                    FROM "Customers" c
+                    JOIN "Orders" o
+                        ON c."id" = o."CustomerID"
+                    JOIN "OrderDetails" d
+                        ON o."id" = d."OrderID"
+                    JOIN "Products" p
+                        ON p."id" = d."ProductID"
+                    GROUP BY c."id", o."id"
+                )
+
+                SELECT 
+                    c."id" as "CustomerID",
+                    c."CustomerName",
+                    r."OrderID",
+                    r."OrderRevenue",
+                    r."OrderRank"
+                FROM "Customers" c
+                JOIN order_rank r
+                    ON c."id" = r."CustomerID"
+                WHERE r."OrderRank" <= 3
+                ORDER BY c."id";
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
@@ -277,6 +310,7 @@ const getFilteredCustomers = async (req, res) => {
             top3SpendingCustomers,
             top5BuyerWithDistinctCategory,
             havingTopAvgRevenuePerOrder,
+            topOrdersPerCustomers,
             status: "sucess"
         })
     } catch (err) {

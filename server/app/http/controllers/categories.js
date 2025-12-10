@@ -66,8 +66,31 @@ const getCategoriesData = async (req,res) => {
                 ORDER BY c."id", SUM(d."Quantity" * p."Price") DESC;
             `
         )
+
+        const revenueUsingGroupingSets = await models.sequelize.query(
+            `
+                SELECT
+                    p."CategoryId",
+                    p."SupplierId",
+                    SUM(d."Quantity" * p."Price") AS "TotalRevenue"
+                FROM "Products" p
+                JOIN "OrderDetails" d
+                    ON d."ProductID" = p."id"
+                GROUP BY GROUPING SETS (
+                    (p."CategoryId", p."SupplierId"),   -- Category + Supplier
+                    (p."CategoryId"),                   -- Category only
+                    (p."SupplierId"),                   -- Supplier only
+                    ()                                  -- Grand total (optional)
+                )
+                ORDER BY 
+                    p."CategoryId" NULLS LAST,
+                    p."SupplierId" NULLS LAST;
+            `
+        )
+
         return res.status(200).send({
-            withTopProductPercentage
+            withTopProductPercentage,
+            revenueUsingGroupingSets
         });
     } catch (err) {
         console.log("Error fetching categories data ",err);

@@ -29,6 +29,14 @@ module.exports = (sequelize, DataTypes) => {
       Spending: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
+      },
+      createdAt: {
+          type: DataTypes.DATE,
+          allowNull: true
+      },
+      updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: true
       }
     }, {
       tableName: 'Customers',

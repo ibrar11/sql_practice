@@ -27,6 +27,14 @@ module.exports = (sequelize, DataTypes) => {
         ShipperID: {
             type: DataTypes.INTEGER,
             allowNull: false
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: true
         }
     })
 

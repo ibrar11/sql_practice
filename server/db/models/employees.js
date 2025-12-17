@@ -28,6 +28,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: false
       },
+      createdAt: {
+          type: DataTypes.DATE,
+          allowNull: true
+      },
+      updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: true
+      }
     })
 
     Employees.associate = function (models) {

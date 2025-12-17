@@ -13,6 +13,14 @@ module.exports = (sequelize, DataTypes) => {
         shipCountry: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        createdAt: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        updatedAt: {
+            type: DataTypes.DATE,
+            allowNull: true
         }
     })
 

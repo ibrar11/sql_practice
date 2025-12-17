@@ -23,6 +23,14 @@ module.exports = (sequelize, DataType) => {
             Price: {
                 type: DataType.FLOAT,
                 defaultValue: 0
+            },
+            createdAt: {
+                type: DataType.DATE,
+                allowNull: true
+            },
+            updatedAt: {
+                type: DataType.DATE,
+                allowNull: true
             }
         }
     )

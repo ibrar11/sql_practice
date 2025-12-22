@@ -71,9 +71,60 @@ const filteredEmployeesData = async(req, res) => {
             `
         )
 
+        const employeeRevenueReport = await models.sequelize.query(
+            `
+                WITH monthly_revenue as (
+                SELECT 
+                    e."id" as "EmployeeID",
+                    e."FirstName" || ' ' || e."LastName" as "EmployeeName",
+                    DATE_TRUNC('month', o."createdAt") as "Month",
+                    SUM(p."Price" * d."Quantity") as "MonthlyRevenue"
+                FROM "Employees" e
+                JOIN "Orders" o
+                    ON e."id" = o."EmployeeID"
+                JOIN "OrderDetails" d
+                    ON d."OrderID" = o."id"
+                JOIN "Products" p 
+                    ON p."id" = d."ProductID"
+                WHERE o."createdAt" >= CURRENT_DATE - INTERVAL '6 months'
+                GROUP BY e."id", DATE_TRUNC('month', o."createdAt")
+                ORDER BY DATE_TRUNC('month', o."createdAt")
+            ),
+            qualified_employee as (
+                SELECT "EmployeeID"
+                FROM monthly_revenue
+                GROUP BY "EmployeeID"
+                HAVING COUNT(DISTINCT "Month") >= 3 
+            )
+
+            SELECT
+                m."EmployeeID",
+                m."EmployeeName",
+                m."Month",
+                m."MonthlyRevenue",
+
+                /* Month Rank per employee */
+                ROW_NUMBER() OVER (
+                    PARTITION BY m."Month"
+                    ORDER BY m."MonthlyRevenue" DESC
+                ) AS "MonthRank",
+
+                /* Running total revenue */
+                SUM(m."MonthlyRevenue") OVER (
+                    PARTITION BY m."EmployeeID"
+                ) AS "RunningTotalRevenue"
+
+            FROM monthly_revenue m
+            JOIN qualified_employee q
+                ON m."EmployeeID" = q."EmployeeID"
+            ORDER BY m."Month";
+            `
+        )
+
         return res.json({
             nonOrderCustomers,
             topThreeActiveEmployees,
+            employeeRevenueReport,
             status: "sucess"
         })
     } catch (err) {

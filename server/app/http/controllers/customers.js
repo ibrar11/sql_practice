@@ -360,6 +360,67 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const customersIncreasingSpendings2 = await models.sequelize.query(
+            `
+                WITH monthly_spending AS (
+                    SELECT
+                        c."id" AS "CustomerID",
+                        c."CustomerName",
+                        DATE_TRUNC('month', o."createdAt") AS "Month",
+                        SUM(d."Quantity" * p."Price") AS "MonthlySpending"
+                    FROM "Customers" c
+                    JOIN "Orders" o
+                        ON c."id" = o."CustomerID"
+                    JOIN "OrderDetails" d
+                        ON d."OrderID" = o."id"
+                    JOIN "Products" p
+                        ON p."id" = d."ProductID"
+                    GROUP BY c."id",  DATE_TRUNC('month', o."createdAt")
+                ),
+                ranked_months AS (
+                    SELECT
+                        *,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY "CustomerID"
+                            ORDER BY "Month"
+                        ) AS "MonthRank"
+                    FROM monthly_spending
+                ),
+                growth AS (
+                    SELECT
+                        curr."CustomerID",
+                        curr."CustomerName",
+                        curr."Month" AS "CurrentMonth",
+                        prev."Month" AS "PreviousMonth",
+                        curr."MonthlySpending" AS "CurrentSpending",
+                        prev."MonthlySpending" AS "PreviousSpending",
+                        curr."MonthlySpending" - prev."MonthlySpending" AS "GrowthAmount",
+                        (curr."MonthlySpending" > prev."MonthlySpending") AS "is_increasing",
+                        (curr."Month" = prev."Month" + INTERVAL '1 month') AS "is_consecutive"
+                    FROM ranked_months curr
+                    JOIN ranked_months prev
+                        ON curr."CustomerID" = prev."CustomerID"
+                    AND curr."MonthRank" = prev."MonthRank" + 1
+                ),
+                eligible_customers AS (
+                    SELECT "CustomerID"
+                    FROM growth
+                    GROUP BY "CustomerID"
+                    HAVING 
+                        COUNT(*) >= 2
+                        AND BOOL_AND(is_increasing)
+                        AND BOOL_AND(is_consecutive)
+                )
+
+
+                SELECT *
+                FROM growth g
+                JOIN eligible_customers e
+                    ON g."CustomerID" = e."CustomerID"
+                ORDER BY g."CustomerID", "CurrentMonth";
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,
@@ -377,6 +438,7 @@ const getFilteredCustomers = async (req, res) => {
             havingTopAvgRevenuePerOrder,
             topOrdersPerCustomers,
             customersIncreasingSpendings,
+            customersIncreasingSpendings2,
             status: "sucess"
         })
     } catch (err) {

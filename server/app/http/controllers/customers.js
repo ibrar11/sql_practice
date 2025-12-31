@@ -421,6 +421,24 @@ const getFilteredCustomers = async (req, res) => {
             `
         )
 
+        const customerCCRRanking = await models.sequelize.query(
+            `
+                WITH eligible_customers as (
+                    SELECT 
+                        c."id" as "CustomerID"
+                    FROM "Customers" c
+                    JOIN "Orders" o
+                        ON c."id" = o."CustomerID"
+                    JOIN "OrderDetails" d
+                        ON o."id" = d."OrderID"
+                    JOIN "Products" p
+                        ON p."id" = d."ProductID"
+                    GROUP BY c."id"
+                    HAVING COUNT(DISTINCT p."CategoryId") >= 3
+                )
+            `
+        )
+
         return res.json({
             highSpending,
             mediumSpending,

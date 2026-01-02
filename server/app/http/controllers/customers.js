@@ -425,7 +425,11 @@ const getFilteredCustomers = async (req, res) => {
             `
                 WITH eligible_customers as (
                     SELECT 
-                        c."id" as "CustomerID"
+                        c."id" as "CustomerID",
+                        c."CustomerName",
+                        c."Country",
+                        SUM(p."Price" * d."Quantity") as "TotalRevenue",
+                        COUNT(DISTINCT o."id") as "TotalOrders"
                     FROM "Customers" c
                     JOIN "Orders" o
                         ON c."id" = o."CustomerID"
@@ -435,7 +439,48 @@ const getFilteredCustomers = async (req, res) => {
                         ON p."id" = d."ProductID"
                     GROUP BY c."id"
                     HAVING COUNT(DISTINCT p."CategoryId") >= 3
+                ),
+                most_purchased as (
+                    SELECT 
+                        e."CustomerID",
+                        p."CategoryId" as "MostPurchasedCategory",
+                        ROW_NUMBER() OVER (PARTITION BY e."CustomerID" ORDER BY SUM(d."Quantity") DESC) as "Rank"
+                    FROM "eligible_customers" e
+                    JOIN "Orders" o
+                        ON e."CustomerID" = o."CustomerID"
+                    JOIN "OrderDetails" d
+                        ON o."id" = d."OrderID"
+                    JOIN "Products" p
+                        ON p."id" = d."ProductID"
+                    GROUP BY e."CustomerID", p."CategoryId"
+                ),
+                country_stats as (
+                    SELECT 
+                        e."CustomerID",
+                        e."CustomerName",
+                        e."Country",
+                        e."TotalRevenue",
+                        e."TotalOrders",
+                        m."MostPurchasedCategory",
+                        ROW_NUMBER() OVER (PARTITION BY e."Country" ORDER BY e."TotalRevenue" DESC) as "RankInCountry"
+                    FROM eligible_customers e
+                    JOIN most_purchased m
+                        ON m."CustomerID" = e."CustomerID"
+                    WHERE m."Rank" = 1
+                ),
+                global_aov AS (
+                    SELECT
+                        SUM(d."Quantity" * p."Price") / COUNT(DISTINCT o."id") AS avg_order_value
+                    FROM "Orders" o
+                    JOIN "OrderDetails" d ON d."OrderID" = o."id"
+                    JOIN "Products" p ON p."id" = d."ProductID"
                 )
+
+                SELECT *
+                FROM country_stats c
+                CROSS JOIN global_aov g
+                WHERE c."RankInCountry" < 3 AND 
+                    c."TotalRevenue"/c."TotalOrders" > g."avg_order_value"
             `
         )
 
@@ -457,6 +502,7 @@ const getFilteredCustomers = async (req, res) => {
             topOrdersPerCustomers,
             customersIncreasingSpendings,
             customersIncreasingSpendings2,
+            customerCCRRanking,
             status: "sucess"
         })
     } catch (err) {
